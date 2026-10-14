@@ -103,4 +103,31 @@ void main() {
       findsNothing,
     );
   });
+
+  testWidgets('AlertBanner provides screen reader accessibility semantics', (
+    WidgetTester tester,
+  ) async {
+    const activeAlert = AlertStateModel(
+      alertId: 'ALT-01',
+      vehicleId: 'CAR-01',
+      ambulanceId: 'AMB-01',
+      distanceMeters: 22.5,
+      distanceFeet: 73.8,
+      isAlertActive: true,
+      message: kWarningMessage,
+      timestamp: 1700000000.0,
+    );
+
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: AlertBanner(alert: activeAlert),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final semantics = tester.getSemantics(find.byType(AlertBanner));
+    expect(semantics.label, contains('URGENT SAFETY ALERT'));
+  });
 }

@@ -12,10 +12,14 @@ from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect, status
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+from starlette.responses import Response
 
 from .auth import (
     create_emergency_session,
     is_ambulance_session_active,
+    is_rate_limited,
     revoke_emergency_session,
     validate_session_token,
 )
@@ -81,6 +85,19 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# Security Headers Middleware
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response: Response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["Permissions-Policy"] = "geolocation=(self), microphone=()"
+        return response
+
+app.add_middleware(SecurityHeadersMiddleware)
+
 # Enable CORS for Flutter Web running on localhost / any port
 app.add_middleware(
     CORSMiddleware,
@@ -105,7 +122,13 @@ def health_check():
 
 @app.post("/api/ambulance/session/start", response_model=EmergencySessionResponse)
 def start_emergency_session(payload: EmergencySessionStartRequest):
-    """Authenticate and initiate an ambulance emergency broadcast session."""
+    """Authenticate and initiate an ambulance emergency broadcast session with rate limiting."""
+    if is_rate_limited(payload.ambulance_id):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many failed authentication attempts. Account temporarily locked for 60 seconds.",
+        )
+
     session_token = create_emergency_session(
         ambulance_id=payload.ambulance_id, passcode=payload.passcode
     )

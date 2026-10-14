@@ -42,7 +42,10 @@ class _AlertBannerState extends State<AlertBanner>
   Widget build(BuildContext context) {
     if (!widget.alert.isAlertActive) {
       // Inactive/Safe state
-      return Container(
+      return Semantics(
+        label: 'Clear Roadway. No active emergency vehicle within 100 feet proximity radius.',
+        container: true,
+        child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         decoration: BoxDecoration(
           color: const Color(0xFF132A1D),
@@ -85,11 +88,16 @@ class _AlertBannerState extends State<AlertBanner>
             ),
           ],
         ),
+      ),
       );
     }
 
-    // Active warning state
-    return ScaleTransition(
+    // Active warning state with accessibility live region announcement
+    return Semantics(
+      liveRegion: true,
+      focused: true,
+      label: 'URGENT SAFETY ALERT: AMBULANCE APPROACHING — MAKE WAY WHEN SAFE. Distance is ${widget.alert.distanceMeters.toStringAsFixed(1)} metres.',
+      child: ScaleTransition(
       scale: _pulseAnimation,
       child: Container(
         width: double.infinity,
@@ -176,6 +184,7 @@ class _AlertBannerState extends State<AlertBanner>
           ],
         ),
       ),
+    ),
     );
   }
 }

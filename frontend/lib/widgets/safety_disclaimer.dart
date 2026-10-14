@@ -7,7 +7,9 @@ class SafetyDisclaimerBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (compact) {
-      return Container(
+      return Semantics(
+        label: 'Prototype Boundary: Proximity threshold of 30.48 metres (100 feet) is not proof of lane. Not certified for emergency dispatch.',
+        child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
           color: Colors.amber.shade900.withValues(alpha: 0.2),
@@ -30,6 +32,7 @@ class SafetyDisclaimerBanner extends StatelessWidget {
             ),
           ],
         ),
+      ),
       );
     }
 

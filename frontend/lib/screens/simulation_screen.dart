@@ -165,14 +165,19 @@ class _SimulationScreenState extends State<SimulationScreen> {
                     const SizedBox(height: 20),
 
                     // Custom Road Canvas
-                    SizedBox(
-                      height: 180,
-                      width: double.infinity,
-                      child: CustomPaint(
-                        painter: RoadCorridorPainter(
-                          vehicles: vehicles,
-                          alerts: alerts,
-                          ambulanceEmergency: ambEmergency,
+                    Semantics(
+                      label: 'Interactive road corridor simulation canvas showing ambulance and civilian vehicles with 30.48-metre proximity safety zone.',
+                      child: RepaintBoundary(
+                        child: SizedBox(
+                          height: 180,
+                          width: double.infinity,
+                          child: CustomPaint(
+                            painter: RoadCorridorPainter(
+                              vehicles: vehicles,
+                              alerts: alerts,
+                              ambulanceEmergency: ambEmergency,
+                            ),
+                          ),
                         ),
                       ),
                     ),
